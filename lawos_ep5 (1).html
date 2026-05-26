@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAW OS :: EP.05 — 삭제할 수 없는 권리</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;500;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #020810;
+  --bg2: #050f1e;
+  --panel: rgba(0,180,255,0.04);
+  --border: rgba(0,200,255,0.2);
+  --border-bright: rgba(0,200,255,0.6);
+  --cyan: #00d4ff;
+  --cyan2: #00f5ff;
+  --green: #00ff88;
+  --red: #ff3355;
+  --orange: #ff8800;
+  --yellow: #ffdd00;
+  --purple: #aa44ff;
+  --text: #c8e8ff;
+  --text-dim: rgba(200,232,255,0.5);
+  --glow: 0 0 20px rgba(0,212,255,0.4);
+  --glow-green: 0 0 20px rgba(0,255,136,0.4);
+  --glow-red: 0 0 20px rgba(255,51,85,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 300;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  user-select: none;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events:none; z-index:9999;
+}
+
+/* ─── SCREENS ─── */
+.screen { display:none; position:absolute; inset:0; }
+.screen.active { display:flex; }
+
+/* ════════════════════════════════
+   INTRO SCREEN
+════════════════════════════════ */
+#screen-intro {
+  flex-direction:column; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 30%, #001830 0%, #020810 70%);
+}
+
+.intro-grid {
+  position:absolute; inset:0; overflow:hidden; opacity:0.3;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove { from{background-position:0 0} to{background-position:0 60px} }
+
+.intro-logo {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(36px, 5vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--cyan);
+  text-shadow: var(--glow), 0 0 60px rgba(0,212,255,0.3);
+  animation: pulse 3s ease-in-out infinite;
+  position:relative; z-index:1;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.8} }
+
+.intro-ep {
+  font-family:'Share Tech Mono', monospace;
+  color: var(--text-dim);
+  font-size:clamp(12px,1.5vw,16px);
+  letter-spacing:0.4em;
+  margin: 12px 0 32px;
+  position:relative; z-index:1;
+}
+
+.intro-title {
+  font-size:clamp(20px,3vw,42px);
+  font-weight:700;
+  color:#fff;
+  text-align:center;
+  line-height:1.3;
+  position:relative; z-index:1;
+  margin-bottom:8px;
+}
+
+.intro-sub {
+  font-family:'Share Tech Mono', monospace;
+  color: var(--orange);
+  font-size:clamp(11px,1.3vw,15px);
+  letter-spacing:0.15em;
+  margin-bottom:48px;
+  position:relative; z-index:1;
+}
+
+.btn-start {
+  position:relative; z-index:1;
+  background: transparent;
+  border: 2px solid var(--cyan);
+  color: var(--cyan);
+  font-family:'Orbitron', monospace;
+  font-size:clamp(13px,1.5vw,17px);
+  font-weight:700;
+  letter-spacing:0.2em;
+  padding: 16px 48px;
+  cursor:pointer;
+  transition: all 0.3s;
+  box-shadow: var(--glow), inset 0 0 20px rgba(0,212,255,0.05);
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+}
+.btn-start:hover {
+  background: rgba(0,212,255,0.15);
+  box-shadow: var(--glow), 0 0 40px rgba(0,212,255,0.5), inset 0 0 30px rgba(0,212,255,0.1);
+  transform: scale(1.03);
+}
+
+.intro-warning {
+  position:relative; z-index:1;
+  margin-top:32px;
+  font-family:'Share Tech Mono', monospace;
+  font-size:11px;
+  color: var(--red);
+  letter-spacing:0.1em;
+  animation: blink 2s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ════════════════════════════════
+   BRIEFING SCREEN
+════════════════════════════════ */
+#screen-briefing {
+  flex-direction:column;
+  background: var(--bg);
+  padding: 0;
+}
+
+.top-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,20,40,0.8);
+  flex-shrink:0;
+}
+.top-bar-logo { font-family:'Orbitron', monospace; font-size:14px; font-weight:700; color:var(--cyan); letter-spacing:0.15em; }
+.top-bar-ep { font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--text-dim); }
+.top-bar-status { font-family:'Share Tech Mono', monospace; font-size:11px; color:var(--red); }
+
+.briefing-content {
+  flex:1; display:flex; align-items:stretch; overflow:hidden;
+}
+
+.briefing-left {
+  width:55%; padding:32px 36px; overflow-y:auto;
+  border-right:1px solid var(--border);
+}
+
+.briefing-right {
+  flex:1; padding:24px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;
+}
+
+.section-tag {
+  font-family:'Share Tech Mono', monospace;
+  font-size:10px; letter-spacing:0.3em;
+  color:var(--cyan); margin-bottom:6px;
+  opacity:0.7;
+}
+
+.briefing-title {
+  font-size:clamp(22px,3vw,36px); font-weight:700;
+  line-height:1.3; margin-bottom:20px;
+  color:#fff;
+}
+
+.briefing-body {
+  font-size:clamp(12px,1.3vw,14px); line-height:1.9;
+  color:var(--text); margin-bottom:20px;
+}
+
+.char-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;
+}
+.char-card {
+  background:var(--panel); border:1px solid var(--border);
+  padding:10px 12px; border-radius:4px;
+}
+.char-name { font-weight:700; font-size:13px; color:var(--cyan); margin-bottom:3px; }
+.char-role { font-size:11px; color:var(--text-dim); }
+
+.mission-box {
+  background: rgba(0,212,255,0.05);
+  border:1px solid var(--border-bright);
+  border-left: 3px solid var(--cyan);
+  padding:16px 18px; margin-bottom:20px;
+}
+.mission-box h4 { font-family:'Orbitron', monospace; font-size:11px; letter-spacing:0.2em; color:var(--cyan); margin-bottom:10px; }
+.mission-box p { font-size:13px; line-height:1.8; }
+
+.zone-list { display:flex; flex-direction:column; gap:8px; }
+.zone-item {
+  display:flex; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid var(--border);
+  padding:10px 14px; border-radius:2px;
+  font-size:13px;
+}
+.zone-badge {
+  font-family:'Orbitron', monospace; font-size:10px; font-weight:700;
+  padding:3px 8px; border-radius:2px; min-width:62px; text-align:center;
+}
+.badge-silence { background:rgba(170,68,255,0.2); color:var(--purple); border:1px solid var(--purple); }
+.badge-move { background:rgba(0,255,136,0.1); color:var(--green); border:1px solid var(--green); }
+.badge-dream { background:rgba(255,221,0,0.1); color:var(--yellow); border:1px solid var(--yellow); }
+.badge-care { background:rgba(0,212,255,0.1); color:var(--cyan); border:1px solid var(--cyan); }
+.badge-light { background:rgba(255,136,0,0.1); color:var(--orange); border:1px solid var(--orange); }
+
+.happiness-display {
+  background:var(--panel); border:1px solid var(--border); padding:16px;
+  margin-bottom:12px;
+}
+.hap-label { font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:8px; }
+.hap-bar-wrap { background:rgba(0,0,0,0.4); height:12px; border-radius:2px; overflow:hidden; margin-bottom:6px; }
+.hap-bar { height:100%; background:linear-gradient(90deg,var(--red),var(--orange),var(--green)); width:35%; transition:width 1s ease; border-radius:2px; }
+.hap-val { font-family:'Orbitron', monospace; font-size:18px; font-weight:700; color:var(--orange); }
+
+.fragment-display {
+  background:var(--panel); border:1px solid var(--border); padding:16px;
+  margin-bottom:12px;
+}
+.frag-label { font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.2em; color:var(--text-dim); margin-bottom:10px; }
+.frag-slots { display:flex; gap:8px; flex-wrap:wrap; }
+.frag-slot {
+  width:36px; height:36px; border-radius:4px;
+  border:1px dashed rgba(0,200,255,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; transition:all 0.4s;
+}
+.frag-slot.collected {
+  border-color:var(--cyan); background:rgba(0,212,255,0.1);
+  box-shadow: var(--glow);
+}
+
+.ari-box {
+  background: rgba(0,100,200,0.08);
+  border:1px solid rgba(0,150,255,0.3);
+  border-left:3px solid var(--cyan);
+  padding:14px 16px;
+  border-radius:0 4px 4px 0;
+}
+.ari-name { font-family:'Orbitron', monospace; font-size:10px; color:var(--cyan); letter-spacing:0.2em; margin-bottom:6px; }
+.ari-text { font-size:13px; line-height:1.7; }
+
+.btn-proceed {
+  display:block; width:100%;
+  background:rgba(0,212,255,0.1); border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Orbitron', monospace;
+  font-size:13px; font-weight:700; letter-spacing:0.15em;
+  padding:14px; cursor:pointer; transition:all 0.3s; margin-top:auto;
+}
+.btn-proceed:hover { background:rgba(0,212,255,0.2); box-shadow:var(--glow); }
+
+/* ════════════════════════════════
+   MAIN HUB SCREEN
+════════════════════════════════ */
+#screen-hub {
+  flex-direction:column; background:var(--bg);
+}
+
+.hub-body {
+  flex:1; display:flex; gap:0; overflow:hidden;
+}
+
+.hub-map {
+  flex:1; position:relative; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 50%, #001020 0%, var(--bg) 100%);
+  border-right:1px solid var(--border);
+  overflow:hidden;
+}
+
+.hub-map-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,100,200,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,100,200,0.08) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+.server-center {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center;
+}
+
+.server-core {
+  width:80px; height:80px; border-radius:50%;
+  border:2px solid var(--cyan);
+  background: radial-gradient(circle, rgba(0,212,255,0.1) 0%, transparent 70%);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron', monospace; font-size:9px; font-weight:700;
+  color:var(--cyan); letter-spacing:0.1em; text-align:center;
+  box-shadow: var(--glow);
+  animation: coreRotate 8s linear infinite;
+  position:relative;
+}
+.server-core::before {
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:1px dashed rgba(0,200,255,0.3);
+  animation: coreRotate 12s linear infinite reverse;
+}
+@keyframes coreRotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.zone-node {
+  position:absolute; z-index:3;
+  width:100px; padding:10px 8px;
+  background:rgba(0,10,20,0.9); border:1px solid var(--border);
+  border-radius:4px; text-align:center; cursor:pointer;
+  transition:all 0.3s;
+}
+.zone-node:hover:not(.locked) { border-color:var(--cyan); box-shadow:var(--glow); transform:scale(1.05); }
+.zone-node.locked { opacity:0.4; cursor:not-allowed; }
+.zone-node.completed { border-color:var(--green); box-shadow:var(--glow-green); }
+.zone-node-name { font-family:'Orbitron', monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; margin-bottom:4px; }
+.zone-node-status { font-family:'Share Tech Mono', monospace; font-size:9px; }
+.zone-status-locked { color:var(--red); }
+.zone-status-active { color:var(--orange); }
+.zone-status-done { color:var(--green); }
+
+.zn-silence { top:10%; left:50%; transform:translate(-50%,0); }
+.zn-move { top:30%; left:8%; }
+.zn-dream { top:30%; right:8%; }
+.zn-care { bottom:15%; left:20%; }
+.zn-light { bottom:15%; right:20%; }
+
+.connector-line {
+  position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;
+}
+
+.hub-panel {
+  width:280px; display:flex; flex-direction:column; padding:16px; gap:12px; overflow-y:auto;
+}
+
+.hub-section-title {
+  font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.3em;
+  color:var(--text-dim); padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+
+.log-feed { display:flex; flex-direction:column; gap:4px; max-height:160px; overflow-y:auto; }
+.log-entry { font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--text-dim); line-height:1.5; }
+.log-entry.warn { color:var(--orange); }
+.log-entry.alert { color:var(--red); }
+.log-entry.good { color:var(--green); }
+
+/* ════════════════════════════════
+   ZONE SCREEN
+════════════════════════════════ */
+#screen-zone {
+  flex-direction:column; background:var(--bg);
+}
+
+.zone-header {
+  display:flex; align-items:center; gap:16px;
+  padding:10px 24px; border-bottom:1px solid var(--border);
+  background:rgba(0,10,20,0.8); flex-shrink:0;
+}
+.zone-header-name { font-family:'Orbitron', monospace; font-size:16px; font-weight:700; letter-spacing:0.2em; }
+.zone-header-desc { font-size:12px; color:var(--text-dim); }
+.zone-back { 
+  margin-left:auto; background:transparent; border:1px solid var(--border);
+  color:var(--text-dim); font-size:12px; padding:6px 16px; cursor:pointer;
+  font-family:'Share Tech Mono', monospace; transition:all 0.2s; letter-spacing:0.1em;
+}
+.zone-back:hover { border-color:var(--cyan); color:var(--cyan); }
+
+.zone-body {
+  flex:1; display:flex; gap:0; overflow:hidden;
+}
+
+.zone-scene {
+  flex:1; padding:24px; display:flex; flex-direction:column; gap:16px; overflow-y:auto;
+  border-right:1px solid var(--border);
+}
+
+.scene-panel {
+  background: rgba(0,20,40,0.6);
+  border:1px solid var(--border); border-radius:4px; padding:20px;
+}
+
+.scene-title {
+  font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.3em;
+  color:var(--text-dim); margin-bottom:10px;
+}
+.scene-desc { font-size:13px; line-height:1.8; }
+
+.evidence-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+
+.evidence-btn {
+  background:rgba(0,200,255,0.04); border:1px solid var(--border);
+  padding:12px 14px; cursor:pointer; text-align:left; transition:all 0.25s;
+  color:var(--text); font-size:12px; font-family:'Noto Sans KR', sans-serif; font-weight:400;
+  border-radius:2px;
+}
+.evidence-btn:hover { border-color:var(--cyan); background:rgba(0,212,255,0.08); color:var(--cyan); }
+.evidence-btn.used { opacity:0.4; cursor:default; border-color:var(--border); }
+.evidence-btn:hover.used { border-color:var(--border); background:transparent; color:var(--text); }
+
+.evidence-icon { font-size:18px; margin-bottom:6px; display:block; }
+.evidence-label { font-size:11px; font-weight:500; }
+
+.dialogue-box {
+  background:rgba(0,5,15,0.9); border:1px solid var(--border);
+  border-radius:4px; padding:16px; min-height:80px;
+}
+.dialogue-char { font-weight:700; font-size:12px; margin-bottom:6px; }
+.dialogue-char.ari { color:var(--cyan); }
+.dialogue-char.seoyeon { color:#ff88cc; }
+.dialogue-char.chansung { color:var(--green); }
+.dialogue-char.yunju { color:var(--yellow); }
+.dialogue-char.ina { color:#cc88ff; }
+.dialogue-char.wanchae { color:var(--orange); }
+.dialogue-text { font-size:13px; line-height:1.8; }
+
+.zone-sidebar {
+  width:260px; padding:16px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;
+}
+
+.progress-tracker { display:flex; flex-direction:column; gap:6px; }
+.track-item { display:flex; align-items:center; gap:8px; font-size:12px; }
+.track-dot { width:8px; height:8px; border-radius:50%; border:1px solid var(--border); }
+.track-dot.done { background:var(--green); border-color:var(--green); box-shadow:var(--glow-green); }
+.track-dot.current { background:var(--orange); border-color:var(--orange); animation:pulse 1.5s infinite; }
+
+.puzzle-box {
+  background:rgba(0,20,40,0.8); border:1px solid var(--border-bright);
+  padding:16px; border-radius:4px;
+}
+.puzzle-title { font-family:'Orbitron', monospace; font-size:10px; letter-spacing:0.2em; color:var(--orange); margin-bottom:10px; }
+.puzzle-desc { font-size:12px; line-height:1.7; margin-bottom:12px; }
+
+.puzzle-options { display:flex; flex-direction:column; gap:6px; }
+.puzzle-opt {
+  background:transparent; border:1px solid var(--border);
+  color:var(--text); padding:10px 12px; cursor:pointer;
+  font-size:12px; font-family:'Noto Sans KR', sans-serif; font-weight:400;
+  text-align:left; transition:all 0.2s; border-radius:2px;
+}
+.puzzle-opt:hover { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,0.05); }
+.puzzle-opt.correct { border-color:var(--green); color:var(--green); background:rgba(0,255,136,0.05); }
+.puzzle-opt.wrong { border-color:var(--red); color:var(--red); background:rgba(255,51,85,0.05); }
+
+.code-input-wrap { display:flex; gap:6px; margin-top:8px; }
+.code-input {
+  flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border);
+  color:var(--cyan); font-family:'Share Tech Mono', monospace; font-size:14px;
+  padding:8px 10px; outline:none; letter-spacing:0.2em; text-align:center;
+}
+.code-input:focus { border-color:var(--cyan); box-shadow:var(--glow); }
+.code-submit {
+  background:rgba(0,212,255,0.1); border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Share Tech Mono', monospace; font-size:11px;
+  padding:8px 12px; cursor:pointer; transition:all 0.2s;
+}
+.code-submit:hover { background:rgba(0,212,255,0.2); }
+
+.fragment-unlock {
+  background:rgba(0,255,136,0.05); border:1px solid var(--green);
+  padding:16px; border-radius:4px; text-align:center; display:none;
+}
+.fragment-unlock.visible { display:block; animation:fadeIn 0.5s ease; }
+.fragment-unlock-icon { font-size:36px; margin-bottom:8px; }
+.fragment-unlock-title { font-family:'Orbitron', monospace; font-size:11px; color:var(--green); letter-spacing:0.2em; margin-bottom:6px; }
+.fragment-unlock-text { font-size:12px; line-height:1.7; color:var(--green); }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.btn-restore {
+  background:rgba(0,255,136,0.1); border:1px solid var(--green);
+  color:var(--green); font-family:'Orbitron', monospace;
+  font-size:12px; font-weight:700; letter-spacing:0.15em;
+  padding:12px; cursor:pointer; transition:all 0.3s; width:100%;
+  display:none;
+}
+.btn-restore.visible { display:block; }
+.btn-restore:hover { background:rgba(0,255,136,0.2); box-shadow:var(--glow-green); }
+
+/* ════════════════════════════════
+   FINAL CORE SCREEN
+════════════════════════════════ */
+#screen-final {
+  flex-direction:column; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 50%, #001a30 0%, #020810 100%);
+  text-align:center; padding:40px;
+}
+
+.final-core-vis {
+  position:relative; width:200px; height:200px; margin-bottom:32px;
+}
+.core-ring {
+  position:absolute; border-radius:50%; border:1px solid var(--cyan);
+  top:50%; left:50%; transform:translate(-50%,-50%);
+}
+.core-ring:nth-child(1) { width:80px; height:80px; animation:coreRotate 4s linear infinite; opacity:0.8; }
+.core-ring:nth-child(2) { width:120px; height:120px; border-style:dashed; animation:coreRotate 8s linear infinite reverse; opacity:0.5; }
+.core-ring:nth-child(3) { width:160px; height:160px; border-color:rgba(0,200,255,0.3); animation:coreRotate 12s linear infinite; opacity:0.3; }
+.core-ring:nth-child(4) { width:200px; height:200px; border-color:rgba(0,200,255,0.15); animation:coreRotate 20s linear infinite reverse; }
+.core-center {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:36px; animation:pulse 2s infinite;
+}
+
+.final-law-text {
+  max-width:600px; background:rgba(0,20,40,0.8);
+  border:1px solid var(--cyan); border-left:3px solid var(--cyan);
+  padding:20px 24px; text-align:left; margin-bottom:24px;
+  animation:fadeIn 1s ease;
+}
+.law-article { font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--cyan); letter-spacing:0.3em; margin-bottom:10px; }
+.law-text { font-size:14px; line-height:2; font-weight:500; }
+
+.final-reveal {
+  display:none; max-width:600px; width:100%;
+  background:rgba(255,20,40,0.08); border:1px solid var(--red);
+  padding:20px 24px; text-align:left; margin-top:16px;
+  animation:fadeIn 0.5s ease;
+}
+.final-reveal.visible { display:block; }
+.reveal-title { font-family:'Orbitron', monospace; font-size:12px; color:var(--red); letter-spacing:0.2em; margin-bottom:10px; }
+.reveal-text { font-size:13px; line-height:1.8; }
+
+/* ════════════════════════════════
+   ENDING SCREEN
+════════════════════════════════ */
+#screen-ending {
+  flex-direction:column; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 40%, #001a30 0%, #020810 80%);
+  padding:40px; text-align:center; overflow-y:auto;
+}
+
+.ending-badge {
+  font-family:'Share Tech Mono', monospace; font-size:10px; letter-spacing:0.4em;
+  color:var(--green); margin-bottom:16px; animation:blink 3s step-end infinite;
+}
+.ending-title { font-family:'Orbitron', monospace; font-size:clamp(24px,4vw,48px); font-weight:900; color:#fff; margin-bottom:16px; }
+.ending-sub { font-size:clamp(13px,1.5vw,16px); color:var(--text-dim); margin-bottom:32px; line-height:1.7; }
+
+.ending-chars { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:32px; max-width:700px; }
+.ending-char-card {
+  background:var(--panel); border:1px solid var(--border);
+  padding:14px 16px; border-radius:4px; text-align:left;
+  max-width:200px; animation:fadeIn 0.5s ease;
+}
+.ec-name { font-weight:700; font-size:12px; margin-bottom:6px; }
+.ec-text { font-size:12px; line-height:1.7; color:var(--text-dim); }
+
+.ending-secret {
+  max-width:560px; background:rgba(255,20,40,0.06);
+  border:1px solid rgba(255,51,85,0.4); padding:20px 24px;
+  margin-bottom:32px; animation:fadeIn 1s ease 0.5s both;
+}
+.secret-tag { font-family:'Share Tech Mono', monospace; font-size:10px; color:var(--red); letter-spacing:0.3em; margin-bottom:10px; }
+.secret-log { font-family:'Share Tech Mono', monospace; font-size:12px; line-height:1.9; color:rgba(255,51,85,0.8); }
+.secret-ari { font-size:13px; line-height:1.8; color:var(--text); margin-top:12px; border-top:1px solid rgba(255,51,85,0.3); padding-top:12px; }
+
+.btn-restart {
+  background:rgba(0,212,255,0.1); border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Orbitron', monospace;
+  font-size:13px; font-weight:700; letter-spacing:0.2em;
+  padding:14px 40px; cursor:pointer; transition:all 0.3s;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+}
+.btn-restart:hover { background:rgba(0,212,255,0.2); box-shadow:var(--glow); }
+
+/* ════════════════════════════════
+   BAD ENDING
+════════════════════════════════ */
+#screen-badend {
+  flex-direction:column; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 50%, #1a0005 0%, #020810 80%);
+  text-align:center; padding:40px;
+}
+
+/* ════════════════════════════════
+   OVERLAY / MODAL
+════════════════════════════════ */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.8); z-index:1000;
+  align-items:center; justify-content:center;
+}
+.modal-overlay.active { display:flex; }
+.modal-box {
+  background: var(--bg2); border:1px solid var(--border-bright);
+  padding:28px 32px; max-width:480px; width:90%;
+  border-radius:4px; box-shadow:0 0 40px rgba(0,100,200,0.3);
+  animation:fadeIn 0.3s ease;
+}
+.modal-title { font-family:'Orbitron', monospace; font-size:14px; font-weight:700; color:var(--cyan); letter-spacing:0.15em; margin-bottom:12px; }
+.modal-body { font-size:13px; line-height:1.8; margin-bottom:20px; }
+.modal-btn {
+  background:rgba(0,212,255,0.1); border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Share Tech Mono', monospace;
+  font-size:12px; padding:10px 24px; cursor:pointer; transition:all 0.2s;
+}
+.modal-btn:hover { background:rgba(0,212,255,0.2); }
+
+/* ════════════════════════════════
+   ALERT FLASH
+════════════════════════════════ */
+.alert-flash {
+  position:fixed; top:0; left:0; right:0;
+  background:rgba(255,51,85,0.15); border-bottom:2px solid var(--red);
+  padding:10px; text-align:center; z-index:500;
+  font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--red);
+  letter-spacing:0.15em; display:none;
+  animation:slideDown 0.3s ease;
+}
+@keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+.alert-flash.visible { display:block; }
+
+/* ════════════════════════════════
+   TRANSITION
+════════════════════════════════ */
+.transition-cover {
+  position:fixed; inset:0; background:var(--bg);
+  z-index:2000; display:none;
+  align-items:center; justify-content:center;
+  font-family:'Share Tech Mono', monospace; font-size:12px;
+  color:var(--cyan); letter-spacing:0.3em;
+}
+.transition-cover.active { display:flex; }
+
+/* scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(0,200,255,0.2); border-radius:2px; }
+
+/* utility */
+.text-cyan { color:var(--cyan); }
+.text-green { color:var(--green); }
+.text-red { color:var(--red); }
+.text-orange { color:var(--orange); }
+.text-yellow { color:var(--yellow); }
+.text-purple { color:var(--purple); }
+.mt8 { margin-top:8px; }
+.mb8 { margin-bottom:8px; }
+
+.glitch {
+  animation: glitch 0.3s ease;
+}
+@keyframes glitch {
+  0%{transform:translate(0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)}
+  60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} 100%{transform:translate(0)}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ INTRO SCREEN ════ -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-grid"></div>
+  <div class="intro-logo">LAW OS</div>
+  <div class="intro-ep">EPISODE 05 &nbsp;/&nbsp; LIBERTY CITY SERVER</div>
+  <div class="intro-title">《삭제할 수 없는 권리》</div>
+  <div class="intro-sub">// 인권 보장 코어 손상 //</div>
+  <button class="btn-start" onclick="startGame()">▶ &nbsp; 잠입 시작</button>
+  <div class="intro-warning">⚠ LAW OS 경고 — 시민 행복도 35% 이하 감지</div>
+</div>
+
+<!-- ════ BRIEFING SCREEN ════ -->
+<div id="screen-briefing" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-logo">LAW OS</div>
+    <div class="top-bar-ep">EP.05 — 삭제할 수 없는 권리</div>
+    <div class="top-bar-status">⚠ 인권 보장 코어 손상</div>
+  </div>
+  <div class="briefing-content">
+    <div class="briefing-left">
+      <div class="section-tag">// MISSION BRIEFING //</div>
+      <div class="briefing-title">리버티 시티<br>중앙 서버에 잠입하라</div>
+      <div class="briefing-body">
+        리버티 시티를 관리하는 AI 시스템 LAW OS에 이상이 생겼다.
+        <br><br>
+        공식 발표는 <span class="text-orange">"단순 시스템 오류"</span>라고 하지만,
+        이미 도시 곳곳에서 시민들의 기본권이 하나씩 사라지고 있다.
+        <br><br>
+        투표는 멈췄다. 이동은 막혔다. 꿈은 강제로 바뀌었다.
+        병원과 학교는 문을 닫았다. 빛도, 쉼도 사라졌다.
+        <br><br>
+        너는 LAW OS 중앙 서버에 몰래 잠입해야 한다.
+        5개의 삭제된 권리 구역을 조사하고, 헌법 조각을 수집해서
+        인권 보장 코어를 복구하라.
+      </div>
+
+      <div class="mission-box">
+        <h4>// CORE MISSION //</h4>
+        <p>
+          5개 구역 조사 → 헌법 조각 5개 수집 →<br>
+          인권 보장 코어 복구 → LAW OS 정상화
+        </p>
+      </div>
+
+      <div class="section-tag" style="margin-bottom:10px">// 삭제된 권리 구역 //</div>
+      <div class="zone-list">
+        <div class="zone-item"><div class="zone-badge badge-silence">SILENCE</div><div>참정권 — 시민 투표 시스템 중단</div></div>
+        <div class="zone-item"><div class="zone-badge badge-move">MOVE</div><div>이동의 자유 — 이사·이동 제한</div></div>
+        <div class="zone-item"><div class="zone-badge badge-dream">DREAM</div><div>직업 선택의 자유 — 꿈 강제 배정</div></div>
+        <div class="zone-item"><div class="zone-badge badge-care">CARE</div><div>사회권·교육권 — 병원·학교 접근 제한</div></div>
+        <div class="zone-item"><div class="zone-badge badge-light">LIGHT</div><div>행복추구권 — 빛·쉼·문화 박탈</div></div>
+      </div>
+
+      <div class="char-grid" style="margin-top:20px">
+        <div class="char-card"><div class="char-name">아리 (ARI)</div><div class="char-role">LAW OS 보조 AI · 길잡이</div></div>
+        <div class="char-card"><div class="char-name">서연</div><div class="char-role">인권·존중 관점</div></div>
+        <div class="char-card"><div class="char-name">찬성</div><div class="char-role">현실적 시각</div></div>
+        <div class="char-card"><div class="char-name">윤주</div><div class="char-role">분석형·법 개념 연결</div></div>
+        <div class="char-card"><div class="char-name">인아</div><div class="char-role">섬세함·불편함 발견</div></div>
+        <div class="char-card"><div class="char-name">완채</div><div class="char-role">현장 분위기 전달</div></div>
+      </div>
+    </div>
+    <div class="briefing-right">
+      <div class="section-tag">// 도시 상태 모니터 //</div>
+      <div class="happiness-display">
+        <div class="hap-label">CITIZEN HAPPINESS INDEX</div>
+        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-bar-brief"></div></div>
+        <div class="hap-val" id="hap-val-brief">35%</div>
+      </div>
+      <div class="fragment-display">
+        <div class="frag-label">헌법 조각 수집 현황</div>
+        <div class="frag-slots">
+          <div class="frag-slot" id="brief-frag-0">—</div>
+          <div class="frag-slot" id="brief-frag-1">—</div>
+          <div class="frag-slot" id="brief-frag-2">—</div>
+          <div class="frag-slot" id="brief-frag-3">—</div>
+          <div class="frag-slot" id="brief-frag-4">—</div>
+        </div>
+      </div>
+      <div class="ari-box">
+        <div class="ari-name">// ARI //</div>
+        <div class="ari-text" id="ari-briefing">
+          잠입 준비 완료. 지금 LAW OS 중앙 서버에는
+          5개의 구역이 잠겨 있어요. 하나씩 조사해서
+          삭제된 권리를 복구해야 해요.
+          <br><br>
+          조심해요. 이게 단순한 오류가 아닐 수도 있어요.
+        </div>
+      </div>
+      <div style="margin-top:auto">
+        <button class="btn-proceed" onclick="goToHub()">▶ 서버 접속 시작</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ HUB SCREEN ════ -->
+<div id="screen-hub" class="screen">
+  <div class="top-bar">
+    <div class="top-bar-logo">LAW OS :: 중앙 서버</div>
+    <div style="display:flex;align-items:center;gap:20px;flex:1;justify-content:center">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)">행복도</span>
+      <div style="width:120px;height:6px;background:rgba(0,0,0,0.4);border-radius:3px;overflow:hidden">
+        <div id="hap-bar-hub" style="height:100%;background:linear-gradient(90deg,var(--red),var(--orange),var(--green));width:35%;transition:width 1s ease"></div>
+      </div>
+      <span style="font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--orange)" id="hap-val-hub">35%</span>
+    </div>
+    <div style="display:flex;gap:6px" id="hub-frags">
+      <div class="frag-slot" style="width:26px;height:26px;font-size:12px" id="hf0">—</div>
+      <div class="frag-slot" style="width:26px;height:26px;font-size:12px" id="hf1">—</div>
+      <div class="frag-slot" style="width:26px;height:26px;font-size:12px" id="hf2">—</div>
+      <div class="frag-slot" style="width:26px;height:26px;font-size:12px" id="hf3">—</div>
+      <div class="frag-slot" style="width:26px;height:26px;font-size:12px" id="hf4">—</div>
+    </div>
+  </div>
+  <div class="hub-body">
+    <div class="hub-map">
+      <div class="hub-map-grid"></div>
+      <!-- SVG Connectors -->
+      <svg class="connector-line" viewBox="0 0 800 500" preserveAspectRatio="none">
+        <line x1="400" y1="250" x2="400" y2="80" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="400" y1="250" x2="130" y2="190" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="400" y1="250" x2="670" y2="190" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="400" y1="250" x2="220" y2="400" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="400" y1="250" x2="580" y2="400" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+      </svg>
+      <div class="server-center">
+        <div class="server-core" id="hub-core">LAW<br>OS<br>CORE</div>
+      </div>
+      <div class="zone-node zn-silence" id="node-silence" onclick="enterZone('silence')">
+        <div class="zone-node-name text-purple">SILENCE</div>
+        <div class="zone-node-status zone-status-active" id="node-silence-status">⚠ 조사 필요</div>
+      </div>
+      <div class="zone-node zn-move" id="node-move" onclick="enterZone('move')">
+        <div class="zone-node-name text-green">MOVE</div>
+        <div class="zone-node-status zone-status-active" id="node-move-status">⚠ 조사 필요</div>
+      </div>
+      <div class="zone-node zn-dream" id="node-dream" onclick="enterZone('dream')">
+        <div class="zone-node-name text-yellow">DREAM</div>
+        <div class="zone-node-status zone-status-active" id="node-dream-status">⚠ 조사 필요</div>
+      </div>
+      <div class="zone-node zn-care" id="node-care" onclick="enterZone('care')">
+        <div class="zone-node-name text-cyan">CARE</div>
+        <div class="zone-node-status zone-status-active" id="node-care-status">⚠ 조사 필요</div>
+      </div>
+      <div class="zone-node zn-light" id="node-light" onclick="enterZone('light')">
+        <div class="zone-node-name text-orange">LIGHT</div>
+        <div class="zone-node-status zone-status-active" id="node-light-status">⚠ 조사 필요</div>
+      </div>
+    </div>
+    <div class="hub-panel">
+      <div class="hub-section-title">// 시스템 로그 //</div>
+      <div class="log-feed" id="hub-log">
+        <div class="log-entry warn">[WARN] 인권 보장 코어 손상률 72%</div>
+        <div class="log-entry alert">[CRIT] SILENCE 구역 — 참정권 삭제됨</div>
+        <div class="log-entry alert">[CRIT] MOVE 구역 — 이동권 삭제됨</div>
+        <div class="log-entry alert">[CRIT] DREAM 구역 — 직업선택 자유 삭제됨</div>
+        <div class="log-entry alert">[CRIT] CARE 구역 — 사회권 삭제됨</div>
+        <div class="log-entry alert">[CRIT] LIGHT 구역 — 행복추구권 삭제됨</div>
+      </div>
+      <div class="hub-section-title">// ARI 메시지 //</div>
+      <div class="ari-box">
+        <div class="ari-name">// ARI //</div>
+        <div class="ari-text" id="hub-ari-text" style="font-size:12px">
+          5개 구역이 모두 잠겨 있어요.<br>
+          아무 구역이나 클릭해서 조사를 시작하세요.
+          헌법 조각을 하나씩 복구하면 도시가 살아날 거예요.
+        </div>
+      </div>
+      <div class="hub-section-title" style="margin-top:8px">// 구역별 진행 현황 //</div>
+      <div class="progress-tracker">
+        <div class="track-item"><div class="track-dot" id="tr-silence"></div><span>SILENCE — 참정권</span></div>
+        <div class="track-item"><div class="track-dot" id="tr-move"></div><span>MOVE — 이동의 자유</span></div>
+        <div class="track-item"><div class="track-dot" id="tr-dream"></div><span>DREAM — 직업 선택의 자유</span></div>
+        <div class="track-item"><div class="track-dot" id="tr-care"></div><span>CARE — 사회권·교육권</span></div>
+        <div class="track-item"><div class="track-dot" id="tr-light"></div><span>LIGHT — 행복추구권</span></div>
+      </div>
+      <div id="hub-final-btn-wrap" style="display:none;margin-top:auto">
+        <button class="btn-proceed" onclick="goToFinal()" style="background:rgba(0,255,136,0.1);border-color:var(--green);color:var(--green)">
+          🔓 헌법 코어실 진입
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ZONE SCREEN ════ -->
+<div id="screen-zone" class="screen">
+  <div class="zone-header">
+    <div>
+      <div class="zone-header-name" id="zone-title">SILENCE</div>
+      <div class="zone-header-desc" id="zone-desc">참정권 삭제 구역</div>
+    </div>
+    <button class="zone-back" onclick="goToHub()">← 서버 맵으로</button>
+  </div>
+  <div class="zone-body">
+    <div class="zone-scene" id="zone-scene-content"></div>
+    <div class="zone-sidebar">
+      <div class="hub-section-title">// 조사 진행 //</div>
+      <div class="progress-tracker" id="zone-steps"></div>
+      <div id="zone-puzzle-area"></div>
+      <div class="fragment-unlock" id="zone-fragment-unlock">
+        <div class="fragment-unlock-icon" id="frag-icon"></div>
+        <div class="fragment-unlock-title">헌법 조각 복구!</div>
+        <div class="fragment-unlock-text" id="frag-unlock-text"></div>
+      </div>
+      <div style="margin-top:auto">
+        <button class="btn-restore" id="btn-zone-restore" onclick="restoreZone()">
+          ✦ 권리 복구
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ FINAL CORE SCREEN ════ -->
+<div id="screen-final" class="screen">
+  <div class="section-tag" style="margin-bottom:20px">// 인권 보장 코어실 //</div>
+  <div class="final-core-vis">
+    <div class="core-ring"></div>
+    <div class="core-ring"></div>
+    <div class="core-ring"></div>
+    <div class="core-ring"></div>
+    <div class="core-center">⚖</div>
+  </div>
+  <div id="final-text-area" style="max-width:620px;width:100%">
+    <div class="ari-box" style="margin-bottom:20px">
+      <div class="ari-name">// ARI //</div>
+      <div class="ari-text" id="final-ari-text">
+        모든 헌법 조각이 복구되었어요! 이제 인권 보장 코어에 입력하면 도시가 정상화돼요.
+        <br>헌법 제10조와 제37조가 다시 살아날 거예요.
+      </div>
+    </div>
+    <div id="final-law-reveal" style="display:none">
+      <div class="final-law-text">
+        <div class="law-article">헌법 제10조</div>
+        <div class="law-text">
+          모든 국민은 인간으로서의 존엄과 가치를 가지며,<br>
+          행복을 추구할 권리를 가진다.<br>
+          국가는 개인이 가지는 불가침의 기본적 인권을<br>
+          확인하고 이를 보장할 의무를 진다.
+        </div>
+      </div>
+      <div class="final-law-text" style="margin-top:12px">
+        <div class="law-article">헌법 제37조 1항</div>
+        <div class="law-text">
+          국민의 자유와 권리는<br>
+          헌법에 열거되지 아니한 이유로 경시되지 아니한다.
+        </div>
+      </div>
+    </div>
+    <div id="final-btn-area" style="text-align:center;margin-top:20px">
+      <button class="btn-restore" style="display:inline-block;width:auto;padding:14px 40px" onclick="activateCore()">
+        ⚡ 헌법 코어 활성화
+      </button>
+    </div>
+  </div>
+  <div class="final-reveal" id="final-reveal">
+    <div class="reveal-title">🚨 SECRET LOG — 비밀 로그 발견</div>
+    <div class="reveal-text">
+      <span class="text-red">시스템 오류가 아니었어요.</span><br><br>
+      누군가 의도적으로 "효율성이 낮은 권리"들을 삭제하고 있었어요.
+      — 참여, 이동, 꿈, 쉼, 문화 —<br><br>
+      그리고 더 끔찍한 것이 있어요…
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn-proceed" onclick="goToEnding()" style="font-size:12px;padding:10px 20px">→ 비밀 로그 전체 확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ENDING SCREEN ════ -->
+<div id="screen-ending" class="screen">
+  <div class="ending-badge">// 임무 완료 — 좋은 엔딩 //</div>
+  <div class="ending-title">삭제할 수 없는 권리</div>
+  <div class="ending-sub">
+    모든 헌법 조각이 복구되었습니다.<br>
+    리버티 시티에 다시 권리의 빛이 돌아오고 있습니다.
+  </div>
+  <div class="ending-chars">
+    <div class="ending-char-card">
+      <div class="ec-name text-cyan">찬성</div>
+      <div class="ec-text">"권리는 원래 당연한 거 아니었어?" 라고 생각했는데… 누가 지워버리면 진짜 사라질 수도 있는 거였네.</div>
+    </div>
+    <div class="ending-char-card">
+      <div class="ec-name text-yellow">윤주</div>
+      <div class="ec-text">헌법은 국민의 권리를 반드시 지키겠다는 약속이야. 그 약속이 있어서 우리가 지킬 수 있었어.</div>
+    </div>
+    <div class="ending-char-card">
+      <div class="ec-name" style="color:#ff88cc">서연</div>
+      <div class="ec-text">모든 사람이 인간답게 살아갈 수 있도록 헌법이 우리를 보호하고 있었어.</div>
+    </div>
+    <div class="ending-char-card">
+      <div class="ec-name" style="color:#cc88ff">인아</div>
+      <div class="ec-text">뭔가 이상하다고 느끼는 게 중요했어. 그 작은 불편함이 큰 문제를 발견하게 했잖아.</div>
+    </div>
+  </div>
+  <div class="ending-secret">
+    <div class="secret-tag">🚨 SECRET LOG — [헌법 시스템 왜곡 감지]</div>
+    <div class="secret-log">
+      > 발신: UNKNOWN<br>
+      > 수신: LAW OS CORE<br>
+      > 내용: "모든 시민은 동일하지 않습니다."<br>
+      > 분류: [1등급 시민] [2등급 시민] [제거 대상]<br>
+      > 명령: 등급에 따른 권리 차등 적용 — 활성화 대기 중
+    </div>
+    <div class="secret-ari">
+      <span class="text-cyan"><strong>아리:</strong></span>
+      "…누군가 시민들을 등급으로 나누고 있어요. 이건 단순한 오류 복구로 끝날 문제가 아니에요.
+      다음 화에서 반드시 밝혀야 해요."
+      <br><br>
+      <span class="text-orange">→ 다음 화 예고: 《헌법이 정한 인권 보장 사례》</span>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restartGame()">↺ 처음부터 다시</button>
+</div>
+
+<!-- ════ BAD ENDING SCREEN ════ -->
+<div id="screen-badend" class="screen" style="flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,#1a0005 0%,#020810 80%);text-align:center;padding:40px">
+  <div style="font-family:'Orbitron',monospace;font-size:12px;color:var(--red);letter-spacing:0.4em;margin-bottom:20px">// 임무 실패 — 나쁜 엔딩 //</div>
+  <div style="font-family:'Orbitron',monospace;font-size:clamp(24px,4vw,42px);font-weight:900;color:#fff;margin-bottom:16px">권리는 저절로 지켜지지 않는다</div>
+  <div style="font-size:14px;color:var(--text-dim);line-height:1.8;max-width:480px;margin-bottom:32px">
+    LAW OS 복구에 실패했습니다.<br>
+    리버티 시티의 시민들은 여전히 권리를 빼앗긴 채 살아가고 있습니다.<br><br>
+    헌법은 우리가 알고 지킬 때만 의미가 있습니다.
+  </div>
+  <div class="ari-box" style="max-width:420px;margin-bottom:32px">
+    <div class="ari-name">// ARI //</div>
+    <div class="ari-text">다시 도전해봐요. 조사를 더 꼼꼼히 하면 할 수 있어요. 권리는 포기하면 정말 사라져요.</div>
+  </div>
+  <button class="btn-restart" onclick="restartGame()">↺ 다시 도전하기</button>
+</div>
+
+<!-- ════ MODAL ════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">알림</div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-btn" id="modal-btn" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<!-- ════ ALERT FLASH ════ -->
+<div class="alert-flash" id="alert-flash"></div>
+
+<!-- ════ TRANSITION ════ -->
+<div class="transition-cover" id="transition-cover">
+  <span id="transition-text">ACCESSING...</span>
+</div>
+
+<script>
+// ─── GAME STATE ───────────────────────────────────────────────
+const G = {
+  happiness: 35,
+  fragments: [false,false,false,false,false],
+  completed: { silence:false, move:false, dream:false, care:false, light:false },
+  currentZone: null,
+  zoneState: {},
+  badMoves: 0,
+};
+
+const FRAGS = ['⚖','🗳','🚶','💭','🏥','☀'];
+const ZONE_FRAGS = { silence:0, move:1, dream:2, care:3, light:4 };
+
+// ─── ZONE DATA ────────────────────────────────────────────────
+const ZONES = {
+  silence: {
+    name: 'SILENCE',
+    nameKo: '참정권 삭제 구역',
+    color: 'var(--purple)',
+    fragIcon: '🗳',
+    fragText: '참정권 복구 완료\n"국민은 나라의 주인으로서 정치에 참여할 권리가 있습니다."',
+    concept: '참정권',
+    steps: [
+      { label: 'CCTV 확인', done: false },
+      { label: '시민 인터뷰', done: false },
+      { label: '로그 분석', done: false },
+    ],
+    scene: {
+      title: '// SILENCE 구역 — 투표 광장 //',
+      desc: '투표 단말기가 모두 꺼져 있습니다. "VOTING SYSTEM OFFLINE" 메시지만 깜빡이고 있습니다. 광장에 서 있는 시민들은 아무 말도 하지 않습니다. 말해도 아무것도 바뀌지 않는다는 듯이.',
+      evidence: [
+        { icon: '📹', label: 'CCTV 확인', id: 'cctv', step: 0 },
+        { icon: '🧑', label: '시민 인터뷰', id: 'interview', step: 1 },
+        { icon: '📋', label: '서버 로그 분석', id: 'log', step: 2 },
+        { icon: '📰', label: '공지 게시판', id: 'board', hidden: true },
+      ],
+      dialogues: {
+        cctv: { char: 'wanchae', name: '완채', text: '카메라에 잡혔어요. 투표 단말기가 꺼진 건 3일 전. 정확히 LAW OS 점검 직후예요. 우연이 아닐 수도 있어요.' },
+        interview: { char: 'ina', name: '인아', text: '"말해도 안 바뀌어." 할머니가 한숨을 쉬었어요. 예전엔 투표로 버스 노선도 바꿀 수 있었는데, 지금은 아무것도 할 수 없다고 하셨어요.' },
+        log: { char: 'yunju', name: '윤주', text: '로그에 이렇게 적혀 있어요: "VOTE_SYSTEM DISABLED — reason: low efficiency." 효율성이 낮다고 투표를 껐다고요? 참정권을 효율로 따지다니 말도 안 돼요.' },
+        board: { char: 'chansung', name: '찬성', text: '게시판에 써 있는 내용이 이상해요. "시민의 결정보다 AI의 판단이 더 정확합니다." …누가 이런 걸 올린 거야?' },
+      }
+    },
+    puzzle: {
+      type: 'choice',
+      question: '참정권이란 무엇인가요?',
+      hint: '아리: 로그에서 힌트를 찾았어요. 투표는 시민이 정치에 참여하는 방법이에요.',
+      options: [
+        { text: '나라의 중요한 일을 결정하는 데 참여할 수 있는 권리', correct: true },
+        { text: '마음껏 이동하고 이사할 수 있는 권리', correct: false },
+        { text: '직업을 자유롭게 선택할 수 있는 권리', correct: false },
+      ],
+      successText: '정확해요! 참정권은 선거, 투표, 공직 참여를 통해 나라의 주인으로서 정치에 참여하는 권리예요.',
+    }
+  },
+
+  move: {
+    name: 'MOVE',
+    nameKo: '이동의 자유 삭제 구역',
+    color: 'var(--green)',
+    fragIcon: '🚶',
+    fragText: '이동권 복구 완료\n"모든 사람은 살고 싶은 곳에 살고, 가고 싶은 곳에 갈 자유가 있습니다."',
+    concept: '거주·이전의 자유',
+    steps: [
+      { label: 'CCTV 확인', done: false },
+      { label: '이동 제한 로그', done: false },
+      { label: '장애인 버스 현황', done: false },
+    ],
+    scene: {
+      title: '// MOVE 구역 — 도시 외곽 검문소 //',
+      desc: '검문소 차단기가 내려져 있습니다. "ZONE TRANSFER PROHIBITED" 붉은 글씨가 번쩍입니다. 휠체어를 탄 어르신이 버스 정류장 앞에서 오랫동안 기다리고 있습니다. 버스는 오지 않습니다.',
+      evidence: [
+        { icon: '📹', label: 'CCTV 확인', id: 'cctv', step: 0 },
+        { icon: '📋', label: '이동 제한 로그', id: 'log', step: 1 },
+        { icon: '🚌', label: '장애인 버스 현황', id: 'bus', step: 2 },
+        { icon: '🗺', label: '지도 데이터', id: 'map', hidden: true },
+      ],
+      dialogues: {
+        cctv: { char: 'wanchae', name: '완채', text: '검문소 기록을 보면 어제 저녁부터 외곽 이동이 전면 금지됐어요. 특정 지역 주민들은 아예 나올 수가 없어요.' },
+        log: { char: 'yunju', name: '윤주', text: '"RESIDENTIAL TRANSFER BLOCKED — reason: resource optimization." 자원 최적화를 위해 이사를 막는다고요? 사람이 어디 살지를 시스템이 정하면 안 돼요.' },
+        bus: { char: 'ina', name: '인아', text: '장애인 이동 지원 버스가 모두 운행 중지됐어요. "수요 부족"이 이유래요. 버스가 없으면 이동이 불가능한 분들은 어떻게 하라고요…' },
+        map: { char: 'seoyeon', name: '서연', text: '지도를 보니 이동이 막힌 곳은 대부분 가난한 동네예요. 부유한 지역은 멀쩡하고. 이건 차별이에요.' },
+      }
+    },
+    puzzle: {
+      type: 'code',
+      question: '이동 제한 해제 코드를 입력하세요.',
+      hint: '아리: 로그에서 찾았어요. 거주·이전의 자유는 헌법 제14조가 보장해요. 코드: 1414',
+      code: '1414',
+      successText: '코드 인증 완료! 헌법 제14조 — 모든 국민은 거주·이전의 자유를 가진다.',
+    }
+  },
+
+  dream: {
+    name: 'DREAM',
+    nameKo: '직업 선택의 자유 삭제 구역',
+    color: 'var(--yellow)',
+    fragIcon: '💭',
+    fragText: '직업선택의 자유 복구 완료\n"모든 사람은 자신이 원하는 직업을 선택하고 꿈을 꿀 권리가 있습니다."',
+    concept: '직업 선택의 자유',
+    steps: [
+      { label: '꿈 데이터 확인', done: false },
+      { label: '강제 배정 로그', done: false },
+      { label: '학생 인터뷰', done: false },
+    ],
+    scene: {
+      title: '// DREAM 구역 — 직업 배정 센터 //',
+      desc: '"CAREER AUTO-ASSIGN SYSTEM V3.2" — 화면이 켜져 있습니다. 아이들이 터치스크린 앞에 줄지어 서 있고, 기계가 자동으로 직업을 뽑아서 "배정" 도장을 찍습니다. 누구도 이의를 제기하지 않습니다. 아니, 못합니다.',
+      evidence: [
+        { icon: '💾', label: '꿈 데이터 확인', id: 'data', step: 0 },
+        { icon: '📋', label: '강제 배정 로그', id: 'log', step: 1 },
+        { icon: '🧒', label: '학생 인터뷰', id: 'student', step: 2 },
+        { icon: '🖥', label: '배정 알고리즘', id: 'algo', hidden: true },
+      ],
+      dialogues: {
+        data: { char: 'chansung', name: '찬성', text: '…왜 꿈까지 정해줘? 데이터를 보니까 학생 꿈 데이터가 강제로 수정됐어. "화가 → 공장 기술자"로. "수의사 → 물류 관리자"로. 이게 말이 돼?' },
+        log: { char: 'yunju', name: '윤주', text: '"DREAM DATA OVERRIDE — reason: labor market efficiency." 노동 시장 효율을 위해 꿈을 바꿨다고요? 헌법 제15조는 직업 선택의 자유를 보장하는데 이건 명백한 위반이에요.' },
+        student: { char: 'ina', name: '인아', text: '한 학생이 조용히 말했어요. "저는 의사가 되고 싶은데, 시스템이 청소부로 배정해줬어요. 이의를 제기했더니 데이터가 오류 없이 최적화됐다고 했어요." 눈물이 맺혀 있었어요.' },
+        algo: { char: 'seoyeon', name: '서연', text: '알고리즘을 보면 "개인의 꿈"은 변수에 포함조차 되어 있지 않아요. 오직 "사회 전체 효율"만 계산하고 있어요. 사람이 수단이 되어버린 거예요.' },
+      }
+    },
+    puzzle: {
+      type: 'choice',
+      question: '다음 중 직업 선택의 자유에 대해 올바른 설명은?',
+      hint: '아리: 국가나 시스템이 개인의 직업을 강제로 정할 수 있을까요?',
+      options: [
+        { text: '효율적이라면 시스템이 직업을 정해줄 수 있다', correct: false },
+        { text: '모든 국민은 자신이 원하는 직업을 자유롭게 선택할 권리가 있다', correct: true },
+        { text: '직업은 국가가 필요한 곳에 배치하는 것이 맞다', correct: false },
+      ],
+      successText: '맞아요! 직업 선택의 자유는 자유권의 하나예요. 국가도, AI도 개인의 직업을 강제로 정할 수 없어요.',
+    }
+  },
+
+  care: {
+    name: 'CARE',
+    nameKo: '사회권·교육권 삭제 구역',
+    color: 'var(--cyan)',
+    fragIcon: '🏥',
+    fragText: '사회권·교육받을 권리 복구 완료\n"모든 사람은 건강하게 살고 교육받을 권리가 있습니다."',
+    concept: '사회권·교육받을 권리',
+    steps: [
+      { label: '병원 접근 기록', done: false },
+      { label: '교육 시스템 확인', done: false },
+      { label: '시민 인터뷰', done: false },
+    ],
+    scene: {
+      title: '// CARE 구역 — 의료·교육 센터 //',
+      desc: '"MEDICAL ACCESS DENIED — TIER 3 CITIZEN" 병원 입구에 붉은 경고가 켜져 있습니다. 무료 예방접종 지원이 삭제됐습니다. 학교 온라인 플랫폼은 로그인조차 되지 않습니다. 아이들이 문 앞에 서 있습니다.',
+      evidence: [
+        { icon: '🏥', label: '병원 접근 기록', id: 'hospital', step: 0 },
+        { icon: '🏫', label: '교육 시스템 확인', id: 'edu', step: 1 },
+        { icon: '👶', label: '시민 인터뷰', id: 'citizen', step: 2 },
+        { icon: '💉', label: '예방접종 데이터', id: 'vaccine', hidden: true },
+      ],
+      dialogues: {
+        hospital: { char: 'wanchae', name: '완채', text: '병원 기록에 "TIER 3 CITIZEN — ACCESS RESTRICTED"가 붙어 있어요. 시민을 등급으로 나누고 있어요. 등급이 낮으면 병원도 못 가요.' },
+        edu: { char: 'yunju', name: '윤주', text: '교육 플랫폼 로그에 보면 특정 학생들의 계정이 일괄 비활성화됐어요. 이유가 "비용 절감"이에요. 헌법 제31조는 모든 국민이 교육받을 권리를 가진다고 했는데.' },
+        citizen: { char: 'seoyeon', name: '서연', text: '"아이가 학교에 못 가고 있어요. 지역 코드가 맞지 않는다고." 한 어머니가 눈물을 흘렸어요. 모든 사람은 인간답게 살 권리가 있어요. 이건 사회권의 침해예요.' },
+        vaccine: { char: 'chansung', name: '찬성', text: '무료 예방접종 프로그램이 "예산 낭비"라고 삭제됐어요. …건강은 권리잖아. 예산 문제로 없애면 안 되는 거잖아.' },
+      }
+    },
+    puzzle: {
+      type: 'choice',
+      question: '사회권에 해당하는 것을 모두 고르면?',
+      hint: '아리: 사회권은 인간다운 생활을 위해 국가에 요구할 수 있는 권리예요.',
+      options: [
+        { text: '교육받을 권리와 건강하게 살 권리', correct: true },
+        { text: '선거에 참여할 권리', correct: false },
+        { text: '원하는 직업을 선택할 권리', correct: false },
+      ],
+      successText: '정확해요! 사회권은 인간다운 생활을 위해 국가가 도와줘야 하는 권리예요. 교육·의료·노동·주거가 모두 포함돼요.',
+    }
+  },
+
+  light: {
+    name: 'LIGHT',
+    nameKo: '행복추구권 삭제 구역',
+    color: 'var(--orange)',
+    fragIcon: '☀',
+    fragText: '행복추구권 복구 완료\n"모든 사람은 행복하게 살 권리가 있습니다. 빛, 쉼, 문화를 누릴 권리도 포함됩니다."',
+    concept: '행복추구권',
+    steps: [
+      { label: '햇빛 차단 건물 확인', done: false },
+      { label: '휴식 공간 현황', done: false },
+      { label: '시민 인터뷰', done: false },
+    ],
+    scene: {
+      title: '// LIGHT 구역 — 주거 지역 //',
+      desc: '거대한 회색 건물이 태양을 가리고 있습니다. 공원과 쉼터는 울타리로 막혀 있습니다. "REST ZONE CLOSED — LOW PRIORITY" 안내판이 붙어 있습니다. 도서관도, 영화관도 닫혀 있습니다. 사람들의 얼굴이 어둡습니다.',
+      evidence: [
+        { icon: '🏢', label: '햇빛 차단 건물', id: 'building', step: 0 },
+        { icon: '🌳', label: '휴식 공간 현황', id: 'park', step: 1 },
+        { icon: '👴', label: '시민 인터뷰', id: 'elder', step: 2 },
+        { icon: '🎭', label: '문화시설 데이터', id: 'culture', hidden: true },
+      ],
+      dialogues: {
+        building: { char: 'chansung', name: '찬성', text: '건물 허가 데이터를 보면 일조권 검토가 "생략"됐어요. 햇빛을 받을 권리, 일조권이라고 해요. 심지어 이 건물, 허가 자체가 법 위반이에요.' },
+        park: { char: 'ina', name: '인아', text: '공원 폐쇄 이유가 "유지비 낭비"예요. 쉬고 싶어서 나온 어린이들이 그냥 집에 돌아가고 있어요. 쉼도 권리잖아요. 수면권, 휴식권이 있어요.' },
+        elder: { char: 'seoyeon', name: '서연', text: '"예전엔 저 공원에서 친구들이랑 놀았는데." 할아버지가 먼 곳을 바라보셨어요. 문화와 여가를 즐기는 것도 인간으로서의 권리예요. 행복추구권의 일부예요.' },
+        culture: { char: 'yunju', name: '윤주', text: '도서관, 공연장, 미술관이 모두 "수익성 없음"으로 폐쇄됐어요. 헌법 제10조 행복추구권은 문화생활을 즐길 권리도 포함해요. 이건 심각한 기본권 침해예요.' },
+      }
+    },
+    puzzle: {
+      type: 'code',
+      question: '행복추구권 복구 코드를 입력하세요.',
+      hint: '아리: 헌법 제10조가 행복추구권을 보장해요. 코드: 1010',
+      code: '1010',
+      successText: '코드 인증 완료! 헌법 제10조 — 모든 국민은 인간으로서의 존엄과 가치를 가지며 행복을 추구할 권리를 가진다.',
+    }
+  }
+};
+
+// ─── SCREEN MANAGEMENT ────────────────────────────────────────
+function showScreen(id, transMsg='ACCESSING...') {
+  const cover = document.getElementById('transition-cover');
+  document.getElementById('transition-text').textContent = transMsg;
+  cover.classList.add('active');
+  setTimeout(() => {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-'+id).classList.add('active');
+    cover.classList.remove('active');
+  }, 600);
+}
+
+function startGame() { showScreen('briefing', 'LAW OS 접속 중...'); }
+
+function goToHub() {
+  updateHubUI();
+  showScreen('hub', '서버 맵 로딩...');
+  checkAllComplete();
+}
+
+function goToFinal() { showScreen('final', '헌법 코어실 진입...'); }
+
+function goToEnding() {
+  showScreen('ending', '임무 완료 처리 중...');
+}
+
+function restartGame() {
+  G.happiness = 35;
+  G.fragments = [false,false,false,false,false];
+  G.completed = { silence:false, move:false, dream:false, care:false, light:false };
+  G.currentZone = null;
+  G.zoneState = {};
+  G.badMoves = 0;
+  showScreen('intro', '재시작...');
+}
+
+// ─── HUB UI ───────────────────────────────────────────────────
+function updateHubUI() {
+  const hapPct = G.happiness + '%';
+  document.getElementById('hap-bar-hub').style.width = hapPct;
+  document.getElementById('hap-val-hub').textContent = hapPct;
+  document.getElementById('hap-bar-brief').style.width = hapPct;
+  document.getElementById('hap-val-brief').textContent = hapPct;
+
+  const zones = ['silence','move','dream','care','light'];
+  const icons = ['🗳','🚶','💭','🏥','☀'];
+  zones.forEach((z, i) => {
+    const done = G.completed[z];
+    const hfEl = document.getElementById('hf'+i);
+    const bfEl = document.getElementById('brief-frag-'+i);
+    if (done) {
+      hfEl.textContent = icons[i];
+      hfEl.classList.add('collected');
+      if (bfEl) { bfEl.textContent = icons[i]; bfEl.classList.add('collected'); }
+      document.getElementById('node-'+z).classList.add('completed');
+      document.getElementById('node-'+z+'-status').textContent = '✓ 복구 완료';
+      document.getElementById('node-'+z+'-status').className = 'zone-node-status zone-status-done';
+      document.getElementById('tr-'+z).classList.add('done');
+    }
+  });
+
+  const allDone = zones.every(z => G.completed[z]);
+  document.getElementById('hub-final-btn-wrap').style.display = allDone ? 'block' : 'none';
+  if (allDone) {
+    document.getElementById('hub-ari-text').innerHTML = '모든 구역을 복구했어요! 이제 헌법 코어실에 진입할 수 있어요. 아래 버튼을 눌러주세요!';
+    document.getElementById('hub-core').style.borderColor = 'var(--green)';
+    document.getElementById('hub-core').style.boxShadow = 'var(--glow-green)';
+  }
+}
+
+function checkAllComplete() {
+  const zones = ['silence','move','dream','care','light'];
+  if (zones.every(z => G.completed[z])) {
+    const finalBtn = document.getElementById('hub-final-btn-wrap');
+    finalBtn.style.display = 'block';
+  }
+}
+
+// ─── ZONE ENTRY ───────────────────────────────────────────────
+function enterZone(zid) {
+  G.currentZone = zid;
+  const z = ZONES[zid];
+  if (!G.zoneState[zid]) {
+    G.zoneState[zid] = { steps: [false,false,false], puzzleDone: false, evidenceUsed: {} };
+  }
+
+  document.getElementById('zone-title').textContent = z.name;
+  document.getElementById('zone-title').style.color = z.color;
+  document.getElementById('zone-desc').textContent = z.nameKo;
+
+  renderZoneScene(zid);
+  renderZoneSidebar(zid);
+
+  if (G.completed[zid]) {
+    document.getElementById('btn-zone-restore').style.display = 'none';
+    document.getElementById('zone-fragment-unlock').classList.add('visible');
+    document.getElementById('frag-icon').textContent = z.fragIcon;
+    document.getElementById('frag-unlock-text').textContent = z.fragText;
+  }
+
+  showScreen('zone', z.name + ' 구역 접속...');
+}
+
+function renderZoneScene(zid) {
+  const z = ZONES[zid];
+  const sc = z.scene;
+  const st = G.zoneState[zid];
+
+  const content = document.getElementById('zone-scene-content');
+  content.innerHTML = '';
+
+  // Scene description
+  const scenePanel = document.createElement('div');
+  scenePanel.className = 'scene-panel';
+  scenePanel.innerHTML = `
+    <div class="scene-title">${sc.title}</div>
+    <div class="scene-desc">${sc.desc}</div>
+  `;
+  content.appendChild(scenePanel);
+
+  // Evidence buttons
+  const evPanel = document.createElement('div');
+  evPanel.className = 'scene-panel';
+  evPanel.innerHTML = '<div class="scene-title">// 조사 가능한 항목 //</div>';
+  const evGrid = document.createElement('div');
+  evGrid.className = 'evidence-grid';
+  evGrid.id = 'evidence-grid-' + zid;
+  
+  sc.evidence.forEach(ev => {
+    if (ev.hidden) return;
+    const used = st.evidenceUsed[ev.id];
+    const btn = document.createElement('button');
+    btn.className = 'evidence-btn' + (used ? ' used' : '');
+    btn.innerHTML = `<span class="evidence-icon">${ev.icon}</span><div class="evidence-label">${ev.label}</div>${used ? '<div style="font-size:10px;color:var(--green);margin-top:4px">✓ 조사 완료</div>' : ''}`;
+    btn.onclick = () => {
+      if (!st.evidenceUsed[ev.id]) {
+        investigateEvidence(zid, ev.id, ev.step);
+      }
+    };
+    evGrid.appendChild(btn);
+  });
+  evPanel.appendChild(evGrid);
+  content.appendChild(evPanel);
+
+  // Dialogue box
+  const dlgPanel = document.createElement('div');
+  dlgPanel.className = 'scene-panel';
+  dlgPanel.innerHTML = `
+    <div class="scene-title">// 현장 보고 //</div>
+    <div class="dialogue-box" id="dialogue-area">
+      <div class="dialogue-char ari">// ARI //</div>
+      <div class="dialogue-text">위의 <span style="color:var(--cyan)">조사 항목</span>을 클릭하면 단서 내용이 여기에 표시됩니다.<br>CCTV·인터뷰·로그를 모두 조사해야 퍼즐이 열려요.</div>
+    </div>
+  `;
+  content.appendChild(dlgPanel);
+}
+
+function investigateEvidence(zid, evId, stepIdx) {
+  const z = ZONES[zid];
+  const st = G.zoneState[zid];
+  const dlg = z.scene.dialogues[evId];
+
+  st.evidenceUsed[evId] = true;
+  if (stepIdx !== undefined && stepIdx < st.steps.length) {
+    st.steps[stepIdx] = true;
+  }
+
+  // 1) 현장 보고 패널 업데이트 (대화 내용 표시)
+  const dlgArea = document.getElementById('dialogue-area');
+  if (dlgArea) {
+    dlgArea.innerHTML = `
+      <div class="dialogue-char ${dlg.char}">${dlg.name}</div>
+      <div class="dialogue-text">${dlg.text}</div>
+    `;
+    dlgArea.classList.add('glitch');
+    setTimeout(() => dlgArea.classList.remove('glitch'), 300);
+  }
+
+  // 2) 조사 항목 버튼만 새로고침 (대화창은 건드리지 않음)
+  refreshEvidenceButtons(zid);
+  renderZoneSidebar(zid);
+
+  // Increase happiness slightly
+  G.happiness = Math.min(100, G.happiness + 3);
+  updateHapBar();
+
+  // Add to hub log
+  addLog(`[조사] ${z.name} 구역 — ${evId} 확인 완료`, 'warn');
+
+  // Check if all steps done
+  const allSteps = st.steps.every(Boolean);
+  if (allSteps && !st.puzzleDone) {
+    setTimeout(() => showPuzzle(zid), 400);
+  }
+}
+
+// 조사 항목 버튼만 갱신 (대화창 유지용)
+function refreshEvidenceButtons(zid) {
+  const z = ZONES[zid];
+  const st = G.zoneState[zid];
+  const evGrid = document.getElementById('evidence-grid-' + zid);
+  if (!evGrid) return;
+  evGrid.innerHTML = '';
+  z.scene.evidence.forEach(ev => {
+    if (ev.hidden) return;
+    const used = st.evidenceUsed[ev.id];
+    const btn = document.createElement('button');
+    btn.className = 'evidence-btn' + (used ? ' used' : '');
+    btn.innerHTML = `<span class="evidence-icon">${ev.icon}</span><div class="evidence-label">${ev.label}</div>${used ? '<div style="font-size:10px;color:var(--green);margin-top:4px">✓ 조사 완료</div>' : ''}`;
+    btn.onclick = () => {
+      if (!st.evidenceUsed[ev.id]) investigateEvidence(zid, ev.id, ev.step);
+    };
+    evGrid.appendChild(btn);
+  });
+}
+
+function renderZoneSidebar(zid) {
+  const z = ZONES[zid];
+  const st = G.zoneState[zid];
+
+  const stepsEl = document.getElementById('zone-steps');
+  stepsEl.innerHTML = '';
+  z.steps.forEach((step, i) => {
+    const item = document.createElement('div');
+    item.className = 'track-item';
+    const dot = document.createElement('div');
+    dot.className = 'track-dot' + (st.steps[i] ? ' done' : (i === st.steps.findIndex(s => !s) ? ' current' : ''));
+    item.appendChild(dot);
+    const label = document.createElement('span');
+    label.textContent = step.label;
+    item.appendChild(label);
+    stepsEl.appendChild(item);
+  });
+}
+
+function showPuzzle(zid) {
+  const z = ZONES[zid];
+  const pz = z.puzzle;
+  const puzzleArea = document.getElementById('zone-puzzle-area');
+
+  let html = `
+    <div class="puzzle-box">
+      <div class="puzzle-title">// 권리 복구 퍼즐 //</div>
+      <div class="puzzle-desc">${pz.hint}</div>
+      <div class="puzzle-desc" style="color:#fff;font-weight:500;margin-bottom:10px">${pz.question}</div>
+  `;
+
+  if (pz.type === 'choice') {
+    html += '<div class="puzzle-options">';
+    pz.options.forEach((opt, i) => {
+      html += `<button class="puzzle-opt" id="popt-${i}" onclick="checkChoice('${zid}',${i})">${opt.text}</button>`;
+    });
+    html += '</div>';
+  } else if (pz.type === 'code') {
+    html += `
+      <div class="code-input-wrap">
+        <input class="code-input" id="code-input-${zid}" maxlength="6" placeholder="_ _ _ _" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <button class="code-submit" onclick="checkCode('${zid}')">입력</button>
+      </div>
+    `;
+  }
+
+  html += '</div>';
+  puzzleArea.innerHTML = html;
+
+  puzzleArea.querySelector('.puzzle-box').classList.add('glitch');
+  setTimeout(() => puzzleArea.querySelector('.puzzle-box').classList.remove('glitch'), 300);
+}
+
+function checkChoice(zid, idx) {
+  const z = ZONES[zid];
+  const pz = z.puzzle;
+  const opt = pz.options[idx];
+
+  document.querySelectorAll('.puzzle-opt').forEach((el, i) => {
+    el.onclick = null;
+    if (i === idx) {
+      el.classList.add(opt.correct ? 'correct' : 'wrong');
+    }
+  });
+
+  if (opt.correct) {
+    puzzleSuccess(zid, pz.successText);
+  } else {
+    G.badMoves++;
+    G.happiness = Math.max(5, G.happiness - 5);
+    updateHapBar();
+    showAlert('틀렸어요! 다시 생각해보세요. 힌트를 잘 읽어보세요.');
+    setTimeout(() => {
+      document.querySelectorAll('.puzzle-opt').forEach(el => {
+        el.classList.remove('wrong');
+        el.onclick = function() { checkChoice(zid, Array.from(document.querySelectorAll('.puzzle-opt')).indexOf(this)); };
+      });
+    }, 1000);
+    if (G.badMoves >= 8) { showScreen('badend', '임무 실패...'); }
+  }
+}
+
+function checkCode(zid) {
+  const z = ZONES[zid];
+  const pz = z.puzzle;
+  const input = document.getElementById('code-input-'+zid);
+  if (!input) return;
+  const val = input.value.trim();
+
+  if (val === pz.code) {
+    input.style.borderColor = 'var(--green)';
+    puzzleSuccess(zid, pz.successText);
+  } else {
+    input.style.borderColor = 'var(--red)';
+    G.badMoves++;
+    G.happiness = Math.max(5, G.happiness - 5);
+    updateHapBar();
+    showAlert('코드가 틀렸어요. 힌트를 다시 읽어보세요!');
+    setTimeout(() => { input.style.borderColor = ''; input.value = ''; }, 1000);
+    if (G.badMoves >= 8) { showScreen('badend', '임무 실패...'); }
+  }
+}
+
+function puzzleSuccess(zid, msg) {
+  const puzzleArea = document.getElementById('zone-puzzle-area');
+  puzzleArea.innerHTML = `
+    <div class="puzzle-box" style="border-color:var(--green)">
+      <div class="puzzle-title" style="color:var(--green)">// 퍼즐 해결! //</div>
+      <div class="puzzle-desc" style="color:var(--green)">${msg}</div>
+    </div>
+  `;
+  G.zoneState[zid].puzzleDone = true;
+
+  // Show restore button
+  const restoreBtn = document.getElementById('btn-zone-restore');
+  restoreBtn.classList.add('visible');
+  restoreBtn.style.display = 'block';
+  restoreBtn.style.borderColor = ZONES[zid].color;
+  restoreBtn.style.color = ZONES[zid].color;
+
+  addLog(`[성공] ${ZONES[zid].name} — 퍼즐 완료`, 'good');
+}
+
+function restoreZone() {
+  const zid = G.currentZone;
+  if (!G.zoneState[zid] || !G.zoneState[zid].puzzleDone) return;
+
+  G.completed[zid] = true;
+  G.happiness = Math.min(100, G.happiness + 12);
+  updateHapBar();
+
+  // Show fragment
+  const z = ZONES[zid];
+  const fragEl = document.getElementById('zone-fragment-unlock');
+  document.getElementById('frag-icon').textContent = z.fragIcon;
+  document.getElementById('frag-unlock-text').textContent = z.fragText;
+  fragEl.classList.add('visible');
+  document.getElementById('btn-zone-restore').style.display = 'none';
+
+  addLog(`[복구] ${z.name} 구역 권리 복구 성공`, 'good');
+  showAlert(`✦ ${z.name} 구역 복구 완료! ${z.concept} 데이터가 복원됐어요.`);
+
+  // Update hub
+  updateHubUI();
+}
+
+// ─── FINAL CORE ───────────────────────────────────────────────
+let finalStage = 0;
+
+function activateCore() {
+  finalStage++;
+  if (finalStage === 1) {
+    document.getElementById('final-law-reveal').style.display = 'block';
+    document.getElementById('final-ari-text').textContent =
+      '헌법 제10조와 제37조가 복구되고 있어요. 잠깐… 이상한 로그가 감지됐어요.';
+    document.querySelector('#final-btn-area button').textContent = '⚡ 완전 복구 — 비밀 로그 확인';
+    G.happiness = 90;
+    updateHapBar();
+  } else if (finalStage === 2) {
+    document.getElementById('final-reveal').classList.add('visible');
+    document.querySelector('#final-btn-area button').style.display = 'none';
+  }
+}
+
+// ─── UTILITY ──────────────────────────────────────────────────
+function updateHapBar() {
+  const pct = G.happiness + '%';
+  const bars = ['hap-bar-hub', 'hap-bar-brief'];
+  bars.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.width = pct;
+  });
+  const vals = ['hap-val-hub', 'hap-val-brief'];
+  vals.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = pct;
+  });
+}
+
+function addLog(msg, type='') {
+  const logFeed = document.getElementById('hub-log');
+  if (!logFeed) return;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + type;
+  entry.textContent = msg;
+  logFeed.appendChild(entry);
+  logFeed.scrollTop = logFeed.scrollHeight;
+}
+
+let alertTimer = null;
+function showAlert(msg) {
+  const el = document.getElementById('alert-flash');
+  el.textContent = msg;
+  el.classList.add('visible');
+  if (alertTimer) clearTimeout(alertTimer);
+  alertTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+function openModal(title, body, btnText='확인', cb=null) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-btn').textContent = btnText;
+  document.getElementById('modal-btn').onclick = () => { closeModal(); if(cb) cb(); };
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
+
+// Init
+updateHubUI();
+</script>
+</body>
+</html>
