@@ -699,7 +699,7 @@ body::before {
         투표는 멈췄다. 이동은 막혔다. 꿈은 강제로 바뀌었다.
         병원과 학교는 문을 닫았다. 빛도, 쉼도 사라졌다.
         <br><br>
-        너는 LAW OS 중앙 서버에 몰래 잠입해야 한다.
+        당신은 LAW OS 중앙 서버에 몰래 잠입해야 한다.
         5개의 삭제된 권리 구역을 조사하고, 헌법 조각을 수집해서
         인권 보장 코어를 복구하라.
       </div>
@@ -847,7 +847,7 @@ body::before {
       </div>
       <div id="hub-final-btn-wrap" style="display:none;margin-top:auto">
         <button class="btn-proceed" onclick="goToFinal()" style="background:rgba(0,255,136,0.1);border-color:var(--green);color:var(--green)">
-          🔓 헌법 코어실 진입
+          🔓 인권 보장 코어실 진입
         </button>
       </div>
     </div>
@@ -921,7 +921,7 @@ body::before {
     </div>
     <div id="final-btn-area" style="text-align:center;margin-top:20px">
       <button class="btn-restore" style="display:inline-block;width:auto;padding:14px 40px" onclick="activateCore()">
-        ⚡ 헌법 코어 활성화
+        ⚡ 인권 보장 코어 활성화
       </button>
     </div>
   </div>
@@ -979,7 +979,7 @@ body::before {
       "…누군가 시민들을 등급으로 나누고 있어요. 이건 단순한 오류 복구로 끝날 문제가 아니에요.
       다음 화에서 반드시 밝혀야 해요."
       <br><br>
-      <span class="text-orange">→ 다음 화 예고: 《헌법이 정한 인권 보장 사례》</span>
+      <span class="text-orange">→ 다음 화 예고: 《헌법에 규정된 인권 보장 사례》</span>
     </div>
   </div>
   <button class="btn-restart" onclick="restartGame()">↺ 처음부터 다시</button>
@@ -1134,9 +1134,9 @@ const ZONES = {
         { icon: '🖥', label: '배정 알고리즘', id: 'algo', hidden: true },
       ],
       dialogues: {
-        data: { char: 'chansung', name: '찬성', text: '…왜 꿈까지 정해줘? 데이터를 보니까 학생 꿈 데이터가 강제로 수정됐어. "화가 → 공장 기술자"로. "수의사 → 물류 관리자"로. 이게 말이 돼?' },
+        data: { char: 'chansung', name: '찬성', text: '…왜 꿈까지 정해줘? 데이터를 보니까 학생 꿈 데이터가 강제로 수정됐어. "화가 → 농구선수"로. "수의사 → 회계사"로. 이게 말이 돼?' },
         log: { char: 'yunju', name: '윤주', text: '"DREAM DATA OVERRIDE — reason: labor market efficiency." 노동 시장 효율을 위해 꿈을 바꿨다고요? 헌법 제15조는 직업 선택의 자유를 보장하는데 이건 명백한 위반이에요.' },
-        student: { char: 'ina', name: '인아', text: '한 학생이 조용히 말했어요. "저는 의사가 되고 싶은데, 시스템이 청소부로 배정해줬어요. 이의를 제기했더니 데이터가 오류 없이 최적화됐다고 했어요." 눈물이 맺혀 있었어요.' },
+        student: { char: 'ina', name: '인아', text: '한 학생이 조용히 말했어요. "저는 가수가 되고 싶은데, 시스템이 변호사로 배정해줬어요. 이의를 제기했더니 데이터가 오류 없이 최적화됐다고 했어요." 눈물이 맺혀 있었어요.' },
         algo: { char: 'seoyeon', name: '서연', text: '알고리즘을 보면 "개인의 꿈"은 변수에 포함조차 되어 있지 않아요. 오직 "사회 전체 효율"만 계산하고 있어요. 사람이 수단이 되어버린 거예요.' },
       }
     },
@@ -1252,7 +1252,7 @@ function goToHub() {
   checkAllComplete();
 }
 
-function goToFinal() { showScreen('final', '헌법 코어실 진입...'); }
+function goToFinal() { showScreen('final', '인권 보장 코어실 진입...'); }
 
 function goToEnding() {
   showScreen('ending', '임무 완료 처리 중...');
@@ -1296,7 +1296,7 @@ function updateHubUI() {
   const allDone = zones.every(z => G.completed[z]);
   document.getElementById('hub-final-btn-wrap').style.display = allDone ? 'block' : 'none';
   if (allDone) {
-    document.getElementById('hub-ari-text').innerHTML = '모든 구역을 복구했어요! 이제 헌법 코어실에 진입할 수 있어요. 아래 버튼을 눌러주세요!';
+    document.getElementById('hub-ari-text').innerHTML = '모든 구역을 복구했어요! 이제 인권 보장 코어실에 진입할 수 있어요. 아래 버튼을 눌러주세요!';
     document.getElementById('hub-core').style.borderColor = 'var(--green)';
     document.getElementById('hub-core').style.boxShadow = 'var(--glow-green)';
   }
